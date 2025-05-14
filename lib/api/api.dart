@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+
 import '../model/movie_model.dart';
 import 'constants.dart';
-
 
 class Api {
   final client = http.Client();
