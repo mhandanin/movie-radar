@@ -46,4 +46,9 @@ class Api {
         .toList();
   }
 
+
+  static Future<Movie> getMovieDetails(int movieId) async {
+    final data = await _get('/movie/$movieId');
+    return Movie.fromJson(data);
+  }
 }

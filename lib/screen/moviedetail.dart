@@ -1,43 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import '../Data/DB.dart';
+import '../api/api.dart';
 import '../api/constants.dart';
 import '../model/movie_model.dart';
 
-
-class MovieDetailScreen extends StatelessWidget {
-  final Movie movie;
+class MovieDetailScreen extends StatefulWidget {
+  final Movie movie; // The basic movie info from the list
   const MovieDetailScreen({Key? key, required this.movie}) : super(key: key);
 
+  @override
+  _MovieDetailScreenState createState() => _MovieDetailScreenState();
+}
 
+class _MovieDetailScreenState extends State<MovieDetailScreen> {
+  late Future<Movie> _movieDetailsFuture;
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  bool _isInWatchlist = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _movieDetailsFuture = Api.getMovieDetails(widget.movie.id);
+    _checkIfInWatchlist();
+  }
+
+  Future<void> _checkIfInWatchlist() async {
+    _isInWatchlist = await _databaseHelper.isMovieInWatchlist(widget.movie.id);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    print('Movie Title in Detail Screen: ${movie.title}');
-    print('Movie Backdrop Path: ${movie.backdropPath}');
-    print('Movie Poster Path: ${movie.posterPath}');
-    print('Movie Release Date: ${movie.releaseDate}');
-    print('Movie Genres: ${movie.genres}');
-    print('Movie Production Countries: ${movie.productionCountries}');
-    print('Movie Production Companies: ${movie.productionCompanies}');
-    print('Movie Overview: ${movie.overview}');
     return Scaffold(
-      appBar: AppBar(
-        title: Text(movie.title),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       extendBodyBehindAppBar: true,
-      body:// _isLoading
-           _buildMovieDetail(),
+      body: FutureBuilder<Movie>(
+        future: _movieDetailsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error loading movie details: ${snapshot.error}'),
+            );
+          } else if (snapshot.hasData) {
+            final detailedMovie = snapshot.data!;
+            return _buildMovieDetail(detailedMovie);
+          } else {
+            return const Center(child: Text('No movie details found.'));
+          }
+        },
+      ),
     );
   }
 
-  Widget _buildMovieDetail() {
-    // if (movie == null) {
-    //   return const Center(child: Text('No movie details available'));
-    // }
-
+  Widget _buildMovieDetail(Movie detailedMovie) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,75 +63,118 @@ class MovieDetailScreen extends StatelessWidget {
           Stack(
             alignment: Alignment.bottomLeft,
             children: [
-              movie.backdropPath != null
+              detailedMovie.backdropPath != null
                   ? Container(
-                height: 250,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage('${imageBaseUrl}${movie.backdropPath}'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
+                    height: 250,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          '${imageBaseUrl}${detailedMovie.backdropPath}',
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
                   : Container(
-                height: 250,
-                width: double.infinity,
-                color: Colors.grey[800],
-                child: const Center(child: Icon(Icons.movie, size: 50, color: Colors.white)),
-              ),
+                    height: 250,
+                    width: double.infinity,
+                    color: Colors.grey[800],
+                    child: const Center(
+                      child: Icon(Icons.movie, size: 50, color: Colors.white),
+                    ),
+                  ),
               Container(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // Poster
-                    movie.posterPath != null
+                    detailedMovie.posterPath != null
                         ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        '${imageBaseUrl}${movie.posterPath}',
-                        height: 180,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    )
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            '${imageBaseUrl}${detailedMovie.posterPath}',
+                            height: 180,
+                            width: 120,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                         : Container(
-                      height: 180,
-                      width: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.grey,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.image_not_supported, size: 40, color: Colors.white),
-                    ),
+                          height: 180,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.white,
+                          ),
+                        ),
                     const SizedBox(width: 16),
-                    // Title and Rating
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            movie.title,
+                            detailedMovie.title,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                              shadows: [
+                                Shadow(color: Colors.black, blurRadius: 2),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 8),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(Icons.star, color: Colors.amber),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${movie.voteAverage.toStringAsFixed(1)}/10',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  shadows: [Shadow(color: Colors.black, blurRadius: 2)],
-                                ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star, color: Colors.amber),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${detailedMovie.voteAverage.toStringAsFixed(1)}/10',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black,
+                                          blurRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              IconButton(
+                                onPressed: () {
+                                  if (_isInWatchlist) {
+                                    _databaseHelper.deleteMovie(widget.movie.id).then((_) {
+                                      setState(() {
+                                        _isInWatchlist = false;
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Movie removed from watchlist.')),
+                                      );
+                                    });
+                                  } else {
+                                    _databaseHelper.insertMovie(widget.movie).then((_) {
+                                      setState(() {
+                                        _isInWatchlist = true;
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Movie added to watchlist.')),
+                                      );
+                                    });
+                                  }
+                                },
+                                icon: Icon(_isInWatchlist ? Icons.bookmark : Icons.bookmark_border, color: Colors.white),
                               ),
                             ],
                           ),
@@ -133,54 +193,59 @@ class MovieDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Release Date
-                _buildDetailRow(
-                  label: 'Release Date',
-                  value: _formatDate(movie.releaseDate),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Genres
-                if (movie.genres != null && movie.genres!.isNotEmpty)
-                _buildDetailRow(
-                  label: 'Genres',
-                  value: movie.genres!.map((genre) => genre.name).join(', '),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Production Countries
-                if (movie.productionCountries != null && movie.productionCountries!.isNotEmpty)
-                  _buildDetailRow(
-                    label: 'Country',
-                    value: movie.productionCountries!.map((country) => country.name).join(', '),
-                  ),
-
-                const SizedBox(height: 12),
-
-                // Production Companies
-                if (movie.productionCompanies != null && movie.productionCompanies!.isNotEmpty)
-                  _buildDetailRow(
-                    label: 'Production',
-                    value: movie.productionCompanies!.map((company) => company.name).join(', '),
-                  ),
-
-                const SizedBox(height: 20),
-
-                // Overview
                 const Text(
                   'Overview',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  movie.overview,
+                  detailedMovie.overview,
                   style: const TextStyle(fontSize: 16),
                 ),
+                const SizedBox(height: 8),
+                _buildDetail(
+                  label: 'Release Date',
+                  value: _formatDate(detailedMovie.releaseDate),
+                ),
+                const SizedBox(height: 12),
+                if (detailedMovie.genres != null &&
+                    detailedMovie.genres!.isNotEmpty)
+                  _buildDetail(
+                    label: 'Genres',
+                    value: detailedMovie.genres!
+                        .map((genre) => genre.name)
+                        .join(', '),
+                  ),
+                if (detailedMovie.genres == null ||
+                    detailedMovie.genres!.isEmpty)
+                  _buildDetail(label: 'Genres', value: '-'),
+                const SizedBox(height: 12),
+                if (detailedMovie.productionCountries != null &&
+                    detailedMovie.productionCountries!.isNotEmpty)
+                  _buildDetail(
+                    label: 'Country',
+                    value: detailedMovie.productionCountries!
+                        .map((country) => country.name)
+                        .join(', '),
+                  ),
+                if (detailedMovie.productionCountries == null ||
+                    detailedMovie.productionCountries!.isEmpty)
+                  _buildDetail(label: 'Country', value: '-'),
+                const SizedBox(height: 12),
+                if (detailedMovie.productionCompanies != null &&
+                    detailedMovie.productionCompanies!.isNotEmpty)
+                  _buildDetail(
+                    label: 'Production',
+                    value: detailedMovie.productionCompanies!
+                        .map((company) => company.name)
+                        .join(', '),
+                  ),
+                if (detailedMovie.productionCompanies == null ||
+                    detailedMovie.productionCompanies!.isEmpty)
+                  _buildDetail(label: 'Production', value: '-'),
+                const SizedBox(height: 20),
+
+
               ],
             ),
           ),
@@ -189,33 +254,24 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow({required String label, required String value}) {
-    return Row(
+  Widget _buildDetail({required String label, required String value}) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16),
         ),
       ],
     );
   }
-
   String _formatDate(DateTime? date) {
     if (date == null) return 'Unknown';
     return '${date.day}/${date.month}/${date.year}';
   }
 }
-
