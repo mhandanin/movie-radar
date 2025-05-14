@@ -8,42 +8,42 @@ import 'constants.dart';
 class Api {
   final client = http.Client();
 
-  Future<List<Movie>> getUpcomingMovies() async {
-    final response = await client.get(Uri.parse(
-      'https://api.themoviedb.org/3/movie/upcoming?api_key=$apiKey',
-    ));
+  static const String _baseUrl = 'https://api.themoviedb.org/3';
+  static const String _apiKey = apiKey;
 
-    Map<String, dynamic> json = jsonDecode(response.body);
-    List<dynamic> body = json['results'];
+  static Future<dynamic> _get(String endpoint) async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl$endpoint?api_key=$_apiKey&language=en-US'),
+    );
 
-    List<Movie> movies = body.map((dynamic item) => Movie.fromMap(item)).toList();
-
-    return movies;
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load data: ${response.statusCode}');
+    }
   }
 
-  Future<List<Movie>> getPopularMovies() async {
-    final response = await client.get(Uri.parse(
-      'https://api.themoviedb.org/3/movie/popular?api_key=$apiKey',
-    ));
-
-    Map<String, dynamic> json = jsonDecode(response.body);
-    List<dynamic> body = json['results'];
-
-    List<Movie> movies = body.map((dynamic item) => Movie.fromMap(item)).toList();
-
-    return movies;
+  static Future<List<Movie>> getUpcomingMovies({int page = 1}) async {
+    final data = await _get('/movie/upcoming');
+    return (data['results'] as List)
+        .map((movie) => Movie.fromJson(movie))
+        .toList();
   }
 
-  Future<List<Movie>> getTopRatedMovies() async {
-    final response = await client.get(Uri.parse(
-      'https://api.themoviedb.org/3/movie/top_rated?api_key=$apiKey',
-    ));
 
-    Map<String, dynamic> json = jsonDecode(response.body);
-    List<dynamic> body = json['results'];
 
-    List<Movie> movies = body.map((dynamic item) => Movie.fromMap(item)).toList();
-
-    return movies;
+  static Future<List<Movie>> getPopularMovies({int page = 1}) async {
+    final data = await _get('/movie/popular');
+    return (data['results'] as List)
+        .map((movie) => Movie.fromJson(movie))
+        .toList();
   }
+
+  static Future<List<Movie>> getTopRatedMovies({int page = 1}) async {
+    final data = await _get('/movie/top_rated');
+    return (data['results'] as List)
+        .map((movie) => Movie.fromJson(movie))
+        .toList();
+  }
+
 }

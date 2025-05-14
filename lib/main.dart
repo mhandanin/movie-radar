@@ -20,14 +20,14 @@ class MovieApp extends StatelessWidget {
         '/splash': (context) => SplashScreen(),
         '/home': (context) => Home(),
         '/watchlist': (context) => WatchList(),
-        '/no-internet': (context) => NoInternet(),
+        // '/no-internet': (context) => NoInternet(),
       },
       onGenerateRoute: (settings) {
 
         if (settings.name == '/movie-detail') {
           final Movie movie = settings.arguments as Movie;
           return MaterialPageRoute(
-            builder: (context) => MovieDetail(movie: movie),
+            builder: (context) => MovieDetailScreen(movie:movie),
           );
         }
         return null; // Handle undefined routes
@@ -41,6 +41,7 @@ class MovieApp extends StatelessWidget {
           unselectedItemColor: Colors.grey,
         ),
       ),
+      home: SplashScreen(),
     );
   }
 }

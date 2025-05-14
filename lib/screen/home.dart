@@ -22,9 +22,9 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    upcomingMovies = Api().getUpcomingMovies();
-    popularMovies = Api().getPopularMovies();
-    topRatedMovies = Api().getTopRatedMovies();
+    upcomingMovies = Api.getUpcomingMovies();
+    popularMovies = Api.getPopularMovies();
+    topRatedMovies = Api.getTopRatedMovies();
   }
 
   // Reusable widget for displaying movies in a horizontal list
@@ -74,8 +74,9 @@ class _HomeState extends State<Home> {
                           fit: BoxFit.cover,
                         ),
                     ),
-                      onTap: (){
-                        Navigator.push(context,  MaterialPageRoute(builder: (context) => MovieDetail(movie: movie)));
+                      onTap: (){  print('Tapped movie: ${movies[index].title}');
+
+                      Navigator.push(context,  MaterialPageRoute(builder: (context) => MovieDetailScreen(movie: movies[index])));
                       },
                     ),
                   );
