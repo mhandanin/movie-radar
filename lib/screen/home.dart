@@ -20,8 +20,7 @@ class _HomeState extends State<Home> {
   final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
   late Future<List<Movie>> _watchlistMovies;
 
-  // Variables for search functionality
-  String _searchQuery = '';
+
   late Future<List<Movie>> _searchResults;
 
   @override
@@ -31,10 +30,9 @@ class _HomeState extends State<Home> {
     popularMovies = Api.getPopularMovies();
     topRatedMovies = Api.getTopRatedMovies();
     _watchlistMovies = _databaseHelper.getWatchlistMovies();
-    _searchResults = Future.value([]); // Initialize with an empty future
+    _searchResults = Future.value([]);
   }
 
-  // Reusable widget for displaying movies in a horizontal list
   Widget _buildMovieList(String title, Future<List<Movie>> movieFuture) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +98,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // Widget for the Home content (movie lists)
+  // Home Widget
   Widget _buildHomeContent() {
     return SingleChildScrollView(
       child: Padding(
@@ -117,7 +115,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // Widget for the Watchlist content
+  // Watchlist Widget
   Widget _buildWatchlistContent() {
     return FutureBuilder<List<Movie>>(
       future: _watchlistMovies,
@@ -138,17 +136,18 @@ class _HomeState extends State<Home> {
             final movie = movies[index];
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              elevation: 4,
+              elevation: 2,
               child: ListTile(
+                tileColor: Colors.black,
                 leading: movie.posterPath != null
                     ? Image.network(
-                  'https://image.tmdb.org/t/p/w92/${movie.posterPath}', // Use a smaller size
+                  'https://image.tmdb.org/t/p/w92/${movie.posterPath}',
                   width: 50,
                   height: 75,
                   fit: BoxFit.cover,
                 )
                     : const SizedBox(width: 50, height: 75, child: Icon(Icons.movie)),
-                title: Text(movie.title),
+                title: Text(movie.title, style: TextStyle(color: Colors.white),),
                 subtitle: Text('Release Year: ${movie.releaseDate?.year ?? "Unknown"}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
@@ -170,99 +169,7 @@ class _HomeState extends State<Home> {
       },
     );
   }
-/*
-  // Method to show search dialog
-  void _showSearchDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Search Movies'),
-              content: TextField(
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                    // Trigger search when typing
-                    if (value.isNotEmpty) {
-                      _searchResults = Api.searchMovies(value);
-                    } else {
-                      _searchResults = Future.value([]);
-                    }
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Enter movie title',
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() {
-                      _navigationBarCurrentIndex = 2; // Switch to the Search tab
-                    });
-                  },
-                  child: const Text('Search'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancel'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
-  // Widget for displaying search results
-  Widget _buildSearchContent() {
-    return FutureBuilder<List<Movie>>(
-      future: _searchResults,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.data == null || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No movies found matching your query', style: TextStyle(color: Colors.white)));
-        } else {
-          final movies = snapshot.data!;
-          return ListView.builder(
-            itemCount: movies.length,
-            itemBuilder: (context, index) {
-              final movie = movies[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                elevation: 4,
-                child: ListTile(
-                  leading: movie.posterPath != null
-                      ? Image.network(
-                    'https://image.tmdb.org/t/p/w92/${movie.posterPath}',
-                    width: 50,
-                    height: 75,
-                    fit: BoxFit.cover,
-                  )
-                      : const SizedBox(width: 50, height: 75, child: Icon(Icons.movie)),
-                  title: Text(movie.title),
-                  subtitle: Text('Release Year: ${movie.releaseDate?.year ?? "Unknown"}'),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => MovieDetailScreen(movie: movie)));
-                  },
-                ),
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-*/
 
   Widget _buildSearchContent() {
     return const MovieSearchWidget();
@@ -305,13 +212,9 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         backgroundColor: Colors.black12,
         foregroundColor: Colors.white,
-        leading: IconButton(onPressed: () {}, icon: const Icon(Icons.logo_dev)),
-        title: const Text('Show Movie'),
+        leading: Image.asset('assets/images/logo.png'),
+        title: const Text('Movie Radar'),
         centerTitle: true,
-        actions: [
-         // IconButton(onPressed: _showSearchDialog, icon: const Icon(Icons.search_rounded)),
-         // IconButton(onPressed: () {}, icon: const Icon(Icons.filter_list)),
-        ],
       ),
       body: (() {
         switch (_navigationBarCurrentIndex) {
@@ -322,7 +225,7 @@ class _HomeState extends State<Home> {
           case 2:
             return _buildSearchContent();
           default:
-            return _buildHomeContent(); // Or any default content you want
+            return _buildHomeContent();
         }
       })(),
     );

@@ -5,7 +5,7 @@ import '../api/constants.dart';
 import '../model/movie_model.dart';
 
 class MovieDetailScreen extends StatefulWidget {
-  final Movie movie; // The basic movie info from the list
+  final Movie movie;
   const MovieDetailScreen({Key? key, required this.movie}) : super(key: key);
 
   @override
@@ -32,6 +32,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       extendBodyBehindAppBar: true,
       body: FutureBuilder<Movie>(
@@ -195,12 +196,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               children: [
                 const Text(
                   'Overview',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFFDB0000)),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   detailedMovie.overview,
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
                 ),
                 const SizedBox(height: 8),
                 _buildDetail(
@@ -260,12 +261,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFDB0000)),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(fontSize: 16),
+          style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
       ],
     );

@@ -54,10 +54,10 @@ class Api {
 
   static Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
     final data = await http.get(
-      Uri.parse('https://api.themoviedb.org/3/search/movie?api_key=f2afcbd1ecfd68f59c18bd0c190b7729&query=a'),
+      Uri.parse('https://api.themoviedb.org/3/search/movie?api_key=$_apiKey&query=$query'),
     );
     var data2=json.decode(data.body);
-    print(data2);
+    // print(data2);
     return (data2['results'] as List)
         .map((movie) => Movie.fromJson(movie))
         .toList();

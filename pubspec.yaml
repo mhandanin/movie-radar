@@ -1,5 +1,5 @@
 name: movie_rada_n
-description: "A new Flutter project."
+description: "where u find ur favourite movies"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -23,6 +23,7 @@ dependencies:
   vm_service: 14.3.1
   sqflite: ^2.0.0+3
   path_provider: ^2.0.11
+#  sqflite_common_ffi: ^2.3.5
 
 dev_dependencies:
   flutter_test:
@@ -38,8 +39,13 @@ flutter:
     - assets/images/logo.png
 
 flutter_native_splash:
-  color: "#ffffff"
+  color: "#000000"
   image: assets/images/logo.png
+  image_path: assets/images/icon.png
   android: true
   ios: true
   web: false
+
+flutter_launcher_icons:
+  android: assets/images/icon.png
+  image_path: assets/images/icon.png
